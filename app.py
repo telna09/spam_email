@@ -4,12 +4,17 @@ import re
 import string
 
 # Function to clean input text
+# Function to clean input text
 def clean_text(text):
+    if not isinstance(text, str):  # Ensure text is a string
+        return ""
+
     text = text.lower()
-    text = re.sub(f"[{string.punctuation}]", "", text)  # Remove punctuation
-    text = re.sub("\d+", "", text)  # Remove numbers
-    text = re.sub("\s+", " ", text).strip()  # Remove extra spaces
+    text = re.sub(r"[{}]".format(string.punctuation), "", text)  # Remove punctuation
+    text = re.sub(r"\d+", "", text)  # Remove numbers
+    text = re.sub(r"\s+", " ", text).strip()  # Remove extra spaces
     return text
+
 
 # Load pickle files
 with open("tfidf_vectorizerNB.pkl", "rb") as f:
