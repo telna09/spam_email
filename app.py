@@ -3,7 +3,11 @@ import pickle
 import re
 import string
 
-# Function to clean input text
+# Function to load pickle files
+def load_pickle(filename):
+    with open(filename, "rb") as file:
+        return pickle.load(file)
+
 # Function to clean input text
 def clean_text(text):
     if not isinstance(text, str):  # Ensure text is a string
@@ -15,21 +19,13 @@ def clean_text(text):
     text = re.sub(r"\s+", " ", text).strip()  # Remove extra spaces
     return text
 
+# Load the pickled models and vectorizers
+tfidf_vectorizerNB = load_pickle("tfidf_vectorizerNB.pkl")
+tfidf_vectorizerLR = load_pickle("tfidf_vectorizerLR.pkl")
+spam_classifierNB = load_pickle("spam_classifierNB.pkl")
+spam_classifierLR = load_pickle("spam_classifierLR.pkl")
 
-# Load pickle files
-with open("tfidf_vectorizerNB.pkl", "rb") as f:
-    vectorizer_nb = pickle.load(f)
-
-with open("tfidf_vectorizerLR.pkl", "rb") as f:
-    vectorizer_lr = pickle.load(f)
-
-with open("spam_classifierNB.pkl", "rb") as f:
-    classifier_nb = pickle.load(f)
-
-with open("spam_classifierLR.pkl", "rb") as f:
-    classifier_lr = pickle.load(f)
-
-# Function to predict spam using both models
+# Function to predict spam
 def predict_spam(email_text, vectorizer, model):
     email_text_cleaned = clean_text(email_text)
     email_tfidf = vectorizer.transform([email_text_cleaned])
@@ -37,29 +33,15 @@ def predict_spam(email_text, vectorizer, model):
     return "Spam" if prediction == 1 else "Not Spam"
 
 # Streamlit UI
-st.title("📧 Spam Email Classifier")
-st.subheader("Enter an email below to check if it's Spam or Not")
+st.title("Spam Email Classifier 🚀")
+st.write("Enter an email text below to check if it's Spam or Not Spam.")
 
-# User input
-user_input = st.text_area("✍️ Type your email content here:", "")
+user_input = st.text_area("Enter email content here:")
 
-if st.button("🔍 Predict"):
-    if user_input.strip():
-        # Predict using Naïve Bayes
-        nb_result = predict_spam(user_input, vectorizer_nb, classifier_nb)
+if st.button("Predict using Naïve Bayes"):
+    nb_result = predict_spam(user_input, tfidf_vectorizerNB, spam_classifierNB)
+    st.write(f"**Naïve Bayes Prediction:** {nb_result}")
 
-        # Predict using Logistic Regression
-        lr_result = predict_spam(user_input, vectorizer_lr, classifier_lr)
-
-        # Display results
-        st.subheader("📌 Results:")
-        st.write(f"**Naïve Bayes Prediction:** {nb_result}")
-        st.write(f"**Logistic Regression Prediction:** {lr_result}")
-
-    else:
-        st.warning("⚠️ Please enter some text to analyze.")
-
-# Footer
-st.markdown("---")
-st.markdown("🚀 Built with **Streamlit** | 📜 Model: Naïve Bayes & Logistic Regression")
-
+if st.button("Predict using Logistic Regression"):
+    lr_result = predict_spam(user_input, tfidf_vectorizerLR, spam_classifierLR)
+    st.write(f"**Logistic Regression Prediction:** {lr_result}")
