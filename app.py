@@ -5,12 +5,14 @@ import string
 
 # Function to load pickle files
 def load_pickle(filename):
+    """Loads a pickle file."""
     with open(filename, "rb") as file:
         return pickle.load(file)
 
 # Function to clean input text
 def clean_text(text):
-    if not isinstance(text, str):  # Ensure text is a string
+    """Preprocesses the input email text by removing punctuation, numbers, and extra spaces."""
+    if not isinstance(text, str):  # Ensure input is a string
         return ""
 
     text = text.lower()
@@ -27,13 +29,14 @@ spam_classifierLR = load_pickle("spam_classifierLR.pkl")
 
 # Function to predict spam
 def predict_spam(email_text, vectorizer, model):
+    """Predicts whether an email is spam or not using the given model and vectorizer."""
     email_text_cleaned = clean_text(email_text)
     email_tfidf = vectorizer.transform([email_text_cleaned])
     prediction = model.predict(email_tfidf)[0]
     return "Spam" if prediction == 1 else "Not Spam"
 
 # Streamlit UI
-st.title("Spam Email Classifier 🚀")
+st.title("📧 Spam Email Classifier 🚀")
 st.write("Enter an email text below to check if it's Spam or Not Spam.")
 
 user_input = st.text_area("Enter email content here:")
