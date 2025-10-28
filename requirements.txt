@@ -1,5 +1,7 @@
-streamlit
+pandas
 numpy
 scikit-learn
-pandas
-nltk
+imbalanced-learn
+joblib
+textblob
+streamlit
