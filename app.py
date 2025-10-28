@@ -1,51 +1,40 @@
 import streamlit as st
 import pickle
 import re
-import string
+import nltk
+from nltk.corpus import stopwords
 
-def clean_text(text):
+# Load the saved model and vectorizer
+with open("spam_classifier.pkl", "rb") as f:
+    vectorizer, tfidf_transformer, model = pickle.load(f)
+
+# Download stopwords
+nltk.download("stopwords")
+stop_words = set(stopwords.words("english"))
+
+# Preprocessing function
+def preprocess_text(text):
     text = text.lower()
-    text = re.sub(f"[{string.punctuation}]", "", text)  # Remove punctuation
-    text = re.sub("\d+", "", text)  # Remove numbers
-    text = re.sub("\s+", " ", text).strip()  # Remove extra spaces
+    text = re.sub(r"\d+", "", text)
+    text = re.sub(r"[^\w\s]", "", text)
+    text = " ".join([word for word in text.split() if word not in stop_words])
     return text
 
-# Load models and vectorizers
-with open('spam_classifierNB.pkl', 'rb') as nb_model_file:
-    nb_classifier = pickle.load(nb_model_file)
-with open('tfidf_vectorizerNB.pkl', 'rb') as nb_vectorizer_file:
-    nb_vectorizer = pickle.load(nb_vectorizer_file)
+# Streamlit UI
+st.title("Spam Email Classifier")
+st.write("Enter an email message to check if it's spam or ham.")
 
-with open('spam_classifierLR.pkl', 'rb') as lr_model_file:
-    lr_classifier = pickle.load(lr_model_file)
-with open('tfidf_vectorizerLR.pkl', 'rb') as lr_vectorizer_file:
-    lr_vectorizer = pickle.load(lr_vectorizer_file)
+user_input = st.text_area("Enter your email content here:", "")
 
-def predict_spam(email_text, model_type):
-    email_text_cleaned = clean_text(email_text)
-    
-    if model_type == "Naïve Bayes":
-        email_tfidf = nb_vectorizer.transform([email_text_cleaned])
-        prediction = nb_classifier.predict(email_tfidf)[0]
+if st.button("Classify"):
+    if user_input:
+        cleaned_email = preprocess_text(user_input)
+        email_vector = vectorizer.transform([cleaned_email])
+        email_tfidf = tfidf_transformer.transform(email_vector)
+        prediction = model.predict(email_tfidf.toarray())
+        
+        result = "Spam" if prediction == 1 else "Ham"
+        st.subheader(f"The email is classified as: {result}")
     else:
-        email_tfidf = lr_vectorizer.transform([email_text_cleaned])
-        prediction = lr_classifier.predict(email_tfidf)[0]
-    
-    return "Spam" if prediction == 1 else "Not Spam"
+        st.warning("Please enter an email message.")
 
-# Streamlit App
-st.title("Spam Detector App")
-st.write("Enter an email text below and select a classifier to predict whether it is Spam or Not Spam.")
-
-# User input
-user_input = st.text_area("Enter email text:")
-
-# Model selection
-model_type = st.radio("Choose a classifier:", ("Naïve Bayes", "Logistic Regression"))
-
-if st.button("Predict"):
-    if user_input.strip():
-        prediction = predict_spam(user_input, model_type)
-        st.write(f"**Prediction:** {prediction}")
-    else:
-        st.write("Please enter some text to classify.")
